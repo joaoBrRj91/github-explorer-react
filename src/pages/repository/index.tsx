@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouteMatch, Link } from 'react-router-dom';
 
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
 import { Header, RepositoryInfo, Issues } from './styles';
 import logoImage from '../../assets/logo-github.svg';
 
@@ -9,8 +10,47 @@ interface RepositoryParams {
   repository: string;
 }
 
+interface Repository {
+  full_name: string;
+  description: string;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+}
+
+interface Issue {
+  id: number;
+  title: string;
+  html_url: string;
+  user: {
+    login: string;
+  };
+}
+
 const Repository: React.FC = () => {
+  const [repository, setRepository] = useState<Repository | null>(null);
+  const [issues, setIssues] = useState<Issue[]>([]);
+
   const { params } = useRouteMatch<RepositoryParams>();
+
+  useEffect(() => {
+    async function loadData(): Promise<void> {
+      const [repositoryResult, issuesResult] = await Promise.all([
+        api.get<Repository>(`repos/${params.repository}`),
+        api.get<Issue[]>(`repos/${params.repository}/issues`),
+      ]);
+
+      setRepository(repositoryResult.data);
+      setIssues(issuesResult.data);
+    }
+
+    loadData();
+  }, [params.repository]);
+
   return (
     <>
       <Header>
@@ -21,42 +61,46 @@ const Repository: React.FC = () => {
         </Link>
       </Header>
 
-      <RepositoryInfo>
-        <header>
-          <img
-            src="https://avatars0.githubusercontent.com/u/25849916?v=4"
-            alt="joaoBrRj91"
-          />
-          <div>
-            <strong>joaobrrj91/netCore20</strong>
-            <p>descrição do repositorio</p>
-          </div>
-        </header>
-        <ul>
-          <li>
-            <strong>1800</strong>
-            <span>Stars</span>
-          </li>
-          <li>
-            <strong>48</strong>
-            <span>Forks</span>
-          </li>
-          <li>
-            <strong>67</strong>
-            <span>Issues</span>
-          </li>
-        </ul>
-      </RepositoryInfo>
+      {repository && (
+        <RepositoryInfo>
+          <header>
+            <img
+              src={repository.owner.avatar_url}
+              alt={repository.owner.login}
+            />
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+          </header>
+          <ul>
+            <li>
+              <strong>{repository.stargazers_count}</strong>
+              <span>Stars</span>
+            </li>
+            <li>
+              <strong>{repository.forks_count}</strong>
+              <span>Forks</span>
+            </li>
+            <li>
+              <strong>{repository.open_issues_count}</strong>
+              <span>Issues</span>
+            </li>
+          </ul>
+        </RepositoryInfo>
+      )}
 
       <Issues>
-        <Link key="testeId" to="GotoPage">
-          <div>
-            <strong>Mudança no dominio</strong>
-            <p>Utilização de Domain Notification</p>
-          </div>
+        {issues.map((issue) => (
+          <Link key={issue.id} to={issue.html_url}>
+            <div>
+              <strong>{issue.title}</strong>
+              <p>{issue.user.login}</p>
+            </div>
 
-          <FiChevronRight size={30} />
-        </Link>
+            <FiChevronRight size={30} />
+          </Link>
+        ))}
       </Issues>
     </>
   );
