@@ -1,5 +1,9 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { shade } from 'polished';
+
+interface FormProps {
+  hasError: boolean;
+}
 
 // Templete Literals
 export const Title = styled.h1`
@@ -10,7 +14,7 @@ export const Title = styled.h1`
   line-height: 56px;
 `;
 
-export const Form = styled.form`
+export const Form = styled.form<FormProps>`
   margin-top: 40px;
   max-width: 700px;
   display: flex;
@@ -20,8 +24,15 @@ export const Form = styled.form`
     color: #3a3a3a;
     height: 50px;
     padding: 0 20px;
-    border: 0;
+    border: 2px solid #fff;
     border-radius: 5px 0 0 5px;
+
+    ${(props) =>
+      props.hasError &&
+      css`
+        border-color: #c53030;
+        border-right: 0;
+      `}
 
     &::placeholder {
       color: #a8a8b3;
@@ -50,6 +61,7 @@ export const Repositories = styled.div`
 
   a {
     width: 100%;
+    height: 100%;
     background: #fff;
     border-radius: 5px;
     padding: 24px;
@@ -75,6 +87,7 @@ export const Repositories = styled.div`
 
     div {
       margin-left: 20px;
+      flex: 1;
 
       strong {
         font-size: 18px;
@@ -93,4 +106,10 @@ export const Repositories = styled.div`
       color: #cbcbd6;
     }
   }
+`;
+
+export const Error = styled.span`
+  display: block;
+  margin-top: 8px;
+  color: #c53030;
 `;
